@@ -1,4 +1,3 @@
-// Create src/models/bloodRequest.ts (new file)
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IBloodRequest extends Document {
@@ -50,7 +49,6 @@ const bloodRequestSchema: Schema = new mongoose.Schema(
     requiredBy: {
       type: Date,
       required: [true, "Required by date is required"],
-      // Future date validation can be added in pre-save hook if needed
     },
     hospitalName: {
       type: String,
@@ -102,14 +100,13 @@ const bloodRequestSchema: Schema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
-// Pre-save hook for requiredBy date validation (must be in future, e.g., after October 02, 2025)
+// Pre-save hook for requiredBy date validation
 bloodRequestSchema.pre("save", function (next) {
   const currentDate = new Date("2025-10-02"); // Fixed as per context
-  // Assert 'this' as IBloodRequest
   const doc = this as any;
   if (doc.requiredBy <= currentDate) {
     return next(new Error("Required by date must be in the future"));

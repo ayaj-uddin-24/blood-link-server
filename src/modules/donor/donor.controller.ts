@@ -1,9 +1,11 @@
 import { Router } from "express";
 import Donor from "./donor.model.ts";
+import { authenticateToken } from "../../middlewares/authToken.ts";
 import jwt from "jsonwebtoken";
 
 const router = Router();
 
+// New Donor Register
 router.post("/register", async (req, res) => {
   try {
     const { email, phoneNumber, confirmPassword, ...donorData } = req.body;
@@ -28,14 +30,19 @@ router.post("/register", async (req, res) => {
     }
 
     // Create and save donor (schema hooks handle hashing, age, etc.)
-    const donor = new Donor({ ...donorData, confirmPassword });
+    const donor = new Donor({
+      email,
+      phoneNumber,
+      ...donorData,
+      confirmPassword,
+    });
     await donor.save();
 
     // Generate JWT token on successful registration
     const token = jwt.sign(
       { donorId: donor._id, email: donor.email },
       process.env.JWT_SECRET || "fallback-secret",
-      { expiresIn: "7d" } // Token expires in 7 days
+      { expiresIn: "7d" }
     );
 
     // Remove password from response
@@ -47,12 +54,11 @@ router.post("/register", async (req, res) => {
       donor: safeDonor,
     });
   } catch (error) {
-    // Handle schema validation errors (age, weight, etc.)
-    res.status(400).json({ error: (error as Error).message });
+    res.status(400).json({ success: false, error: (error as Error).message });
   }
 });
 
-// New POST /login endpoint
+// Donor Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -84,36 +90,18 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// Middleware to verify JWT token (for protected routes)
-export const authenticateToken = (req: any, res: any, next: any) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
-
-  if (!token) {
-    return res.status(401).json({ error: "Access token required" });
-  }
-
-  jwt.verify(
-    token,
-    process.env.JWT_SECRET || "fallback-secret",
-    (err: any, donor: any) => {
-      if (err) {
-        return res.status(403).json({ error: "Invalid or expired token" });
-      }
-      req.donor = donor;
-      next();
-    }
-  );
-};
-
-// Example protected route: GET /profile
+// Donor or User Profile
 router.get("/profile", authenticateToken, async (req: any, res) => {
   try {
     const donor = await Donor.findById(req.donor.donorId).select("-password");
     if (!donor) {
       return res.status(404).json({ error: "Donor not found" });
     }
-    res.json(donor);
+    res.status(201).json({
+      success: true,
+      message: "User profile retrieved successfully!",
+      data: donor,
+    });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch profile" });
   }

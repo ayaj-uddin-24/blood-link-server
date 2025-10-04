@@ -1,10 +1,11 @@
 import { Router } from "express";
 import Report from "./report.model.ts";
-import { authenticateToken } from "../donor/donor.controller.ts";
+import { authenticateToken } from "../../middlewares/authToken.ts";
 
 const router = Router();
-// POST /reports - Create a new report (public, no auth needed; supports anonymous)
-router.post("/reports", async (req, res) => {
+
+// POST - Create a new report (public, no auth needed; supports anonymous)
+router.post("/", async (req, res) => {
   try {
     const report = new Report(req.body);
     await report.save();
@@ -15,7 +16,7 @@ router.post("/reports", async (req, res) => {
           _id: report._id,
           userType: report.userType,
           reportCategory: report.reportCategory,
-          //   createdAt: report.createdAt,
+          createdAt: report.createdAt,
         }
       : report;
 
@@ -24,12 +25,12 @@ router.post("/reports", async (req, res) => {
       report: responseData,
     });
   } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+    res.status(400).json({ success: false, error: (error as Error).message });
   }
 });
 
-// GET /reports - List all reports (admin-only; use auth middleware)
-router.get("/reports", authenticateToken, async (req, res) => {
+// GET - List all reports (admin-only; use auth middleware)
+router.get("/", authenticateToken, async (req, res) => {
   try {
     // Optional query params: ?category=fraud&anonymous=false&page=1&limit=10
     const { category, anonymous, page = 1, limit = 10 } = req.query;
@@ -55,8 +56,8 @@ router.get("/reports", authenticateToken, async (req, res) => {
   }
 });
 
-// GET /reports/:id - Get a specific report (admin-only)
-router.get("/reports/:id", authenticateToken, async (req, res) => {
+// GET /:id - Get a specific report (admin-only)
+router.get("/:id", authenticateToken, async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
     if (!report) {
@@ -73,8 +74,8 @@ router.get("/reports/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// Optional: DELETE /reports/:id - Delete (admin-only)
-router.delete("/reports/:id", authenticateToken, async (req, res) => {
+// Optional: DELETE /:id - Delete (admin-only)
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const report = await Report.findByIdAndDelete(req.params.id);
     if (!report) {

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import BloodRequest from "./bloodRequest.model.ts";
-import { authenticateToken } from "../donor/donor.controller.ts";
+import { authenticateToken } from "../../middlewares/authToken.ts";
 
 const router = Router();
 
-// POST /blood-requests - Create a new blood request (public, no auth needed)
-router.post("/blood-requests", async (req, res) => {
+// POST - Create a new blood request (public, no auth needed)
+router.post("/", async (req, res) => {
   try {
     const bloodRequest = new BloodRequest(req.body);
     await bloodRequest.save();
@@ -14,14 +14,13 @@ router.post("/blood-requests", async (req, res) => {
       bloodRequest,
     });
   } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+    res.status(400).json({ success: false, error: (error as Error).message });
   }
 });
 
-// GET /blood-requests - List all blood requests (public, for viewing requests)
-router.get("/blood-requests", async (req, res) => {
+// GET - List all blood requests (public, for viewing requests)
+router.get("/", async (req, res) => {
   try {
-    // Optional query params: ?urgency=High&bloodGroup=O+ (filter examples)
     const { urgencyLevel, bloodGroup, page = 1, limit = 10 } = req.query;
     const filters: any = {};
     if (urgencyLevel) filters.urgencyLevel = urgencyLevel;
@@ -34,7 +33,9 @@ router.get("/blood-requests", async (req, res) => {
 
     const total = await BloodRequest.countDocuments(filters);
 
-    res.json({
+    res.status(200).json({
+      success: true,
+      message: "Blood Requests Data Retrieved Successfully",
       bloodRequests,
       totalPages: Math.ceil(total / Number(limit)),
       currentPage: Number(page),
@@ -44,8 +45,8 @@ router.get("/blood-requests", async (req, res) => {
   }
 });
 
-// GET /blood-requests/:id - Get a specific blood request
-router.get("/blood-requests/:id", async (req, res) => {
+// GET /:id - Get a specific blood request
+router.get("/:id", async (req, res) => {
   try {
     const bloodRequest = await BloodRequest.findById(req.params.id);
     if (!bloodRequest) {
@@ -57,8 +58,8 @@ router.get("/blood-requests/:id", async (req, res) => {
   }
 });
 
-// Optional: PUT /blood-requests/:id - Update (e.g., for donors/admins to mark fulfilled; use auth middleware if needed)
-router.put("/blood-requests/:id", authenticateToken, async (req, res) => {
+// Optional: PUT /:id - Update (e.g., for donors/admins to mark fulfilled; use auth middleware if needed)
+router.put("/:id", authenticateToken, async (req, res) => {
   // Assuming auth for updates
   try {
     const bloodRequest = await BloodRequest.findByIdAndUpdate(
@@ -71,12 +72,12 @@ router.put("/blood-requests/:id", authenticateToken, async (req, res) => {
     }
     res.json({ message: "Blood request updated", bloodRequest });
   } catch (error) {
-    res.status(400).json({ error: (error as Error).message });
+    res.status(400).json({ success: false, error: (error as Error).message });
   }
 });
 
-// DELETE /blood-requests/:id - Delete (admin only; use auth)
-router.delete("/blood-requests/:id", authenticateToken, async (req, res) => {
+// DELETE /:id - Delete (admin only; use auth)
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const bloodRequest = await BloodRequest.findByIdAndDelete(req.params.id);
     if (!bloodRequest) {

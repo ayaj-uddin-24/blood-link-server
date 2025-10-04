@@ -19,8 +19,8 @@ mongoose
 // Middleware for JSON parsing
 app.use(express.json());
 app.use("/api/v1/donor", donorRouter);
-app.use("/api/v1/blood-request", bloodRequestRouter);
-app.use("/api/v1/report", reportRouter);
+app.use("/api/v1/blood-requests", bloodRequestRouter);
+app.use("/api/v1/reports", reportRouter);
 
 // Home Router
 app.get("/", (req, res) => {

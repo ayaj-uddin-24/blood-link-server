@@ -1,4 +1,3 @@
-// Create src/models/report.ts (new file)
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IReport extends Document {
@@ -14,6 +13,7 @@ export interface IReport extends Document {
   detailedDescription: string;
   supportingEvidence?: string; // Optional, e.g., URL or text
   anonymous: boolean;
+  createdAt?: string;
 }
 
 // Schema definition
@@ -34,7 +34,6 @@ const reportSchema: Schema = new mongoose.Schema(
       },
       validate: {
         validator: function (v: string) {
-          // Validate as phone or email
           const phoneRegex = /^\+?[\d\s-]{10,}$/;
           const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
           return phoneRegex.test(v) || emailRegex.test(v);
@@ -73,7 +72,7 @@ const reportSchema: Schema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 

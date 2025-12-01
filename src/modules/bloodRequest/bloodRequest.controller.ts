@@ -18,7 +18,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET - List all blood requests (public, for viewing requests)
+// GET - List all blood requests
 router.get("/", async (req, res) => {
   try {
     const { urgencyLevel, bloodGroup, page = 1, limit = 10 } = req.query;
@@ -58,9 +58,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Optional: PUT /:id - Update (e.g., for donors/admins to mark fulfilled; use auth middleware if needed)
+// Optional: PUT /:id - Update
 router.put("/:id", authenticateToken, async (req, res) => {
-  // Assuming auth for updates
   try {
     const bloodRequest = await BloodRequest.findByIdAndUpdate(
       req.params.id,

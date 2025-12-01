@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IReport extends Document {
   userType: "blood donor" | "recipient" | "other";
-  userIdentification?: string; // Phone or email; optional if anonymous
+  userIdentification?: string;
   reportCategory:
     | "fake people"
     | "harassment"
@@ -11,7 +11,7 @@ export interface IReport extends Document {
     | "other"
     | "rude behavior";
   detailedDescription: string;
-  supportingEvidence?: string; // Optional, e.g., URL or text
+  supportingEvidence?: string;
   anonymous: boolean;
   createdAt?: string;
 }
@@ -30,7 +30,7 @@ const reportSchema: Schema = new mongoose.Schema(
     userIdentification: {
       type: String,
       required: function (this: any) {
-        return !this.anonymous; // Required only if not anonymous
+        return !this.anonymous;
       },
       validate: {
         validator: function (v: string) {
@@ -79,12 +79,11 @@ const reportSchema: Schema = new mongoose.Schema(
 // Pre-save hook: If anonymous, clear userIdentification for privacy
 reportSchema.pre("save", function (next) {
   if (this.anonymous) {
-    this.userIdentification = undefined; // Don't store if anonymous
+    this.userIdentification = undefined;
   }
   next();
 });
 
-// Create and export the model
 const Report = mongoose.model<IReport>("Report", reportSchema);
 
 export default Report;

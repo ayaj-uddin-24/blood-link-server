@@ -29,7 +29,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ error: "Passwords do not match" });
     }
 
-    // Create and save donor (schema hooks handle hashing, age, etc.)
+    // Create and save donor
     const donor = new Donor({
       email,
       phoneNumber,
@@ -104,6 +104,34 @@ router.get("/profile", authenticateToken, async (req: any, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
+// GET /donors - Fetch all registered donors (public for now; can add auth later)
+router.get("/", async (req, res) => {
+  try {
+    const { bloodGroup, gender, location, page = 1, limit = 20 } = req.query;
+    const filters: any = {};
+    if (bloodGroup) filters.bloodGroup = bloodGroup;
+    if (gender) filters.gender = gender;
+    if (location) filters.address = { $regex: location, $options: "i" };
+
+    const donors = await Donor.find(filters)
+      .select("-password -__v")
+      .sort({ createdAt: -1 })
+      .limit(Number(limit) * 1)
+      .skip((Number(page) - 1) * Number(limit));
+
+    const total = await Donor.countDocuments(filters);
+
+    res.json({
+      donors,
+      totalPages: Math.ceil(total / Number(limit)),
+      currentPage: Number(page),
+      total,
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch donors" });
   }
 });
 

@@ -4,7 +4,7 @@ import { authenticateToken } from "../../middlewares/authToken.ts";
 
 const router = Router();
 
-// POST - Create a new report (public, no auth needed; supports anonymous)
+// POST - Create a new report
 router.post("/", async (req, res) => {
   try {
     const report = new Report(req.body);
@@ -29,7 +29,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET - List all reports (admin-only; use auth middleware)
+// GET - List all reports
 router.get("/", authenticateToken, async (req, res) => {
   try {
     // Optional query params: ?category=fraud&anonymous=false&page=1&limit=10
@@ -39,10 +39,10 @@ router.get("/", authenticateToken, async (req, res) => {
     if (anonymous !== undefined) filters.anonymous = anonymous === "true";
 
     const reports = await Report.find(filters)
-      .sort({ createdAt: -1 }) // Newest first
+      .sort({ createdAt: -1 })
       .limit(Number(limit) * 1)
       .skip((Number(page) - 1) * Number(limit))
-      .select("-userIdentification"); // Hide identification in list for privacy
+      .select("-userIdentification");
 
     const total = await Report.countDocuments(filters);
 
@@ -63,7 +63,7 @@ router.get("/:id", authenticateToken, async (req, res) => {
     if (!report) {
       return res.status(404).json({ error: "Report not found" });
     }
-    // Hide identification unless needed (admin can adjust)
+
     const safeReport = report.toObject();
     if (safeReport.anonymous) {
       delete safeReport.userIdentification;

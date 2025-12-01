@@ -1,5 +1,6 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 
 export const app = express();
 const port = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ mongoose
 
 // Middleware for JSON parsing
 app.use(express.json());
+app.use(cors());
 app.use("/api/v1/donor", donorRouter);
 app.use("/api/v1/blood-requests", bloodRequestRouter);
 app.use("/api/v1/reports", reportRouter);

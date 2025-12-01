@@ -89,7 +89,7 @@ const donorSchema: Schema = new mongoose.Schema(
   }
 );
 
-// Virtual for confirmPassword (used for validation, not stored)
+// Virtual for confirmPassword
 donorSchema.virtual("confirmPassword").set(function (value: string) {
   this._confirmPassword = value;
 });
@@ -102,7 +102,6 @@ donorSchema.pre("save", async function (this: IDonor, next) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password as string, salt);
 
-    // Confirm password validation (only if confirmPassword is set)
     if (this.confirmPassword && this.password !== this.confirmPassword) {
       return next(new Error("Passwords do not match"));
     }
@@ -129,14 +128,13 @@ donorSchema.pre("save", async function (this: IDonor, next) {
   }
 });
 
-// Method to compare passwords (for login)
+// Method to compare passwords
 donorSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Create and export the model
 const Donor = mongoose.model<IDonor>("Donor", donorSchema);
 
 export default Donor;

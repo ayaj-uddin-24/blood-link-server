@@ -13,7 +13,7 @@ dotenv.config();
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/myapp")
+  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/blood-link")
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 

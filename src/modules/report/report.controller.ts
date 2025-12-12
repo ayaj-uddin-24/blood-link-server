@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET - List all reports
-router.get("/", authenticateToken, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     // Optional query params: ?category=fraud&anonymous=false&page=1&limit=10
     const { category, anonymous, page = 1, limit = 10 } = req.query;
